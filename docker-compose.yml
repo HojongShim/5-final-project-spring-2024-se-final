@@ -2,12 +2,13 @@ version: '3.8'
 
 services:
   webapp:
+    image: webapp
     build:
       context: ./web-app
       dockerfile: Dockerfile
     container_name: webapp
     ports:
-      - "5000"
+      - "5000:5000"
     depends_on:
       - mongodb
     networks:
@@ -16,6 +17,7 @@ services:
       MONGODB_URI: "mongodb://mongodb:27017/"
 
   mongodb:
+    image: mongodb
     build:
       context: ./mongodb
       dockerfile: Dockerfile
@@ -26,6 +28,8 @@ services:
       - mongodb_data:/data/db
     networks:
       - wbm_network
+    environment:
+      MONGO_INITDB_DATABASE: "WBM"
 
 volumes:
   mongodb_data:

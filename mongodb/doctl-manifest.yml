@@ -1,0 +1,7 @@
+name: mongodb
+
+services:
+  - name: mongodb
+    image: mongo
+    ports:
+        - 27017:27017
