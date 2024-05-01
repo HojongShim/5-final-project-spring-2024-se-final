@@ -5,7 +5,6 @@ on:
   pull_request:
     types: [opened, closed]
     branches: [main, master]
-
 jobs:
   log:
     runs-on: ubuntu-latest
@@ -26,10 +25,6 @@ jobs:
       - uses: actions/setup-python@v3
         with:
           python-version: "^3.9"
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'  
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -40,38 +35,23 @@ jobs:
           pipenv install build
           pipenv install requests
           pipenv install gitcommitlogger
-      # - name: Log pull request opened
-        # if: github.event_name == 'pull_request' && github.event.action == 'opened'
-        # run: |
-          # pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t pull_request_opened -d $(echo $PR_CREATED_AT) -un $(echo $GITHUB_LOGIN) -o commit_stats.csv -u $(echo $COMMIT_LOG_API) -v
-      - name: Verify API secret presence
-        run: |
-          if [ -z "${{ secrets.COMMIT_LOG_API }}" ]; then
-            echo "COMMIT_LOG_API secret is empty"
-          else
-            echo "COMMIT_LOG_API secret is present"
-          fi
-
       - name: Log pull request opened
         if: github.event_name == 'pull_request' && github.event.action == 'opened'
         run: |
-          pipenv run gitcommitlogger -r ${{ env.REPOSITORY_URL }} -t pull_request_opened -d ${{ env.PR_CREATED_AT }} -un ${{ env.GITHUB_LOGIN }} -o commit_stats.csv -u ${{ secrets.COMMIT_LOG_API }} -v
-      
+          pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t pull_request_opened -d $(echo $PR_CREATED_AT) -un $(echo $GITHUB_LOGIN) -o commit_stats.csv -u $(echo $COMMIT_LOG_API) -v
       - name: Log pull request closed and merged
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
         run: |
           echo $COMMITS > commits.json
           cat commits.json # debugging
-          pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t pull_request_merged -d ${{ env.PR_CLOSED_AT  }} -un ${{ env.GITHUB_LOGIN  }} -i commits.json -o commit_stats.csv -u ${{  secrets.COMMIT_LOG_API  }} -v
-      
+          pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t pull_request_merged -d $(echo $PR_CLOSED_AT) -un $(echo $GITHUB_LOGIN) -i commits.json -o commit_stats.csv -u $(echo $COMMIT_LOG_API) -v
       - name: Log pull request closed without merge
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
         run: |
-          pipenv run gitcommitlogger -r ${{  env.REPOSITORY_URL }} -t pull_request_closed -d ${{  env.PR_CLOSED_AT  }} -un ${{ env.GITHUB_LOGIN  }} -o commit_stats.csv -u ${{  secrets.COMMIT_LOG_API  }} -v
-      
+          pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t pull_request_closed -d $(echo $PR_CLOSED_AT) -un $(echo $GITHUB_LOGIN) -o commit_stats.csv -u $(echo $COMMIT_LOG_API) -v
       - name: Log push
         if: github.event_name == 'push'
         run: |
           echo $COMMITS > commits.json
           cat commits.json # debugging
-          pipenv run gitcommitlogger -r ${{  env.REPOSITORY_URL  }} -t ${{  env.EVENT_TYPE  }} -i commits.json -o commit_stats.csv -u ${{  secrets.COMMIT_LOG_API  }} -v
+          pipenv run gitcommitlogger -r $(echo $REPOSITORY_URL) -t $(echo $EVENT_TYPE) -i commits.json -o commit_stats.csv -u $(echo $COMMIT_LOG_API) -v
